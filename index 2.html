@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Si tot fora privat · Compromís Castalla</title>
+<meta name="description" content="Toca els serveis que fas servir i mira com puja el total de si tot fora privat. Estimacions amb fonts públiques.">
+</head>
+<body>
+<title>Calculadora Si Tot Fora Privat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&display=swap">
+<style>
+/* Layout: capçalera, dues columnes (targetes visuals + resum fix amb donut), bloc del sou al final i fonts. En mòbil, barra de total fixa. Mode editor només amb #editor. */
+:root{
+  --bg:#ffffff; --panel:#EEF0F6; --card:#ffffff; --fg:#353949; --muted:#6c7080; --line:#d6d9e3; --field:#ffffff;
+  --accent:#D23517; --accent2:#F39128; --flat:#E85A1C; --on-accent:#ffffff; --shadow:0 6px 24px rgba(53,57,73,.08);
+  --good:#1f8a70; --bad:#c0261a;
+  --a-sanitat:#D23517; --a-educacio:#F39128; --a-dependencia:#353949; --a-pensions:#979AA4; --a-transport:#2f7f9d; --a-habitatge:#7a4fa3; --a-propis:#1f8a70;
+  --font:'Manrope','Inter',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#1c1e29; --panel:#272a38; --card:#232634; --fg:#eef0f6; --muted:#a3a7b8; --line:#3a3e50; --field:#1c1e29; --flat:#ff8a52; --shadow:0 6px 24px rgba(0,0,0,.3); --good:#3fc3a0; --bad:#ff7b6e;
+  --a-dependencia:#c8ccdb; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#1c1e29; --panel:#272a38; --card:#232634; --fg:#eef0f6; --muted:#a3a7b8; --line:#3a3e50; --field:#1c1e29; --flat:#ff8a52; --shadow:0 6px 24px rgba(0,0,0,.3); --good:#3fc3a0; --bad:#ff7b6e;
+  --a-dependencia:#c8ccdb; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font);font-weight:500;font-size:15px;line-height:1.45;
+  padding-block:0 64px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto}
+header{padding-top:30px;display:flex;flex-direction:column;gap:10px}
+.brand{font-weight:800;font-size:12px;letter-spacing:.14em;color:var(--flat);text-decoration:none}
+h1{font-weight:800;font-size:clamp(30px,5.4vw,52px);letter-spacing:-.03em;line-height:1.04;margin:0;text-wrap:balance;max-width:20ch}
+.lead{color:var(--muted);max-width:64ch;margin:0;font-size:16px}
+.hint{font-size:13px;color:var(--muted)}
+.mini{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;display:none;margin:16px calc(-1*max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;justify-content:space-between;align-items:baseline;gap:12px}
+.mini b{font-size:26px;font-weight:800;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.mini span{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:32px;align-items:start;margin-top:26px}
+@media(max-width:940px){.layout{grid-template-columns:minmax(0,1fr)}.mini{display:flex}.summary{order:-1;position:static!important}}
+.summary{position:sticky;top:calc(16px + env(safe-area-inset-top,0px));background:var(--panel);border-radius:32px;padding:24px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.sum-top{display:flex;flex-direction:column;align-items:center;gap:6px}
+.donut{position:relative;width:min(100%,260px);aspect-ratio:1/1}
+.donut svg{width:100%;height:100%;transform:rotate(-90deg)}
+.donut circle{fill:none;stroke-width:26;transition:stroke-dasharray .5s,stroke-dashoffset .5s}
+.donut .ctr{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:0 24%}
+.ctr .l{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.ctr .n{font-size:clamp(22px,4vw,30px);font-weight:800;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
+.sum-month{font-weight:800;font-size:15px;font-variant-numeric:tabular-nums;color:var(--flat)}
+.rows{display:flex;flex-direction:column;gap:10px}
+.rw{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;font-weight:700;font-size:14px}
+.rw i{width:12px;height:12px;border-radius:50%}
+.rw b{font-variant-numeric:tabular-nums}
+.rw.z{opacity:.4}
+.rng{font-size:13px;color:var(--muted);margin:0}
+.sumsal{font-weight:800;font-size:15px;border-radius:18px;padding:12px 14px;background:var(--card)}
+.btn{font:inherit;font-weight:800;border:0;border-radius:999px;padding:12px 20px;cursor:pointer;color:var(--on-accent);background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.btn.sec{background:var(--card);color:var(--fg);border:1.5px solid var(--line)}
+.btn.sm{padding:8px 14px;font-size:13px}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+.area{margin-top:36px}
+.area:first-child{margin-top:0}
+.ah{display:flex;align-items:center;gap:14px;margin-bottom:6px}
+.ico{width:48px;height:48px;border-radius:16px;display:grid;place-items:center;color:#fff;flex:none}
+.ico svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ah h2{margin:0;font-size:clamp(22px,3.2vw,30px);font-weight:800;letter-spacing:-.02em;flex:1}
+.ah .sub-t{font-weight:800;font-size:18px;font-variant-numeric:tabular-nums}
+.asub{margin:0 0 14px;color:var(--muted);font-size:14px;max-width:70ch}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,200px),1fr));gap:14px}
+.card{background:var(--card);border:2px solid var(--line);border-radius:28px;padding:16px;display:flex;flex-direction:column;gap:10px;min-width:0;box-shadow:var(--shadow);position:relative;overflow:hidden}
+.card.on{border-color:var(--ac);background:linear-gradient(180deg,color-mix(in srgb,var(--ac) 10%,var(--card)),var(--card) 70%)}
+.head{all:unset;display:flex;flex-direction:column;gap:10px;cursor:pointer;min-width:0}
+.head:focus-visible,.card button:focus-visible,input:focus-visible,select:focus-visible,a:focus-visible,.btn:focus-visible{outline:3px solid var(--flat);outline-offset:2px}
+.top{display:flex;justify-content:space-between;align-items:flex-start}
+.ic{width:56px;height:56px;border-radius:20px;background:var(--ac);color:#fff;display:grid;place-items:center;opacity:.35;transition:opacity .2s}
+.card.on .ic{opacity:1}
+.ic svg{width:30px;height:30px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.chk{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;color:transparent;flex:none}
+.card.on .chk{background:var(--ac);border-color:var(--ac);color:#fff}
+.chk svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.t{font-weight:800;line-height:1.2;font-size:16px}
+.d{color:var(--muted);font-size:12.5px;line-height:1.35}
+.price{font-weight:800;font-size:28px;letter-spacing:-.02em;font-variant-numeric:tabular-nums;line-height:1}
+.price small{font-size:13px;color:var(--muted);font-weight:700;letter-spacing:0}
+.pub{font-size:12.5px;color:var(--muted);font-weight:700}
+.step{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12.5px;font-weight:700;color:var(--muted);flex-wrap:wrap}
+.stp{display:inline-flex;align-items:center;background:var(--panel);border-radius:999px}
+.stp button{width:36px;height:36px;border:0;border-radius:50%;background:transparent;color:var(--fg);font:inherit;font-weight:800;font-size:20px;cursor:pointer}
+.stp input{width:56px;border:0;background:transparent;text-align:center;font:inherit;font-weight:800;color:var(--fg);font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.stp input::-webkit-outer-spin-button,.stp input::-webkit-inner-spin-button{-webkit-appearance:none}
+.src{font-size:12px}
+.src a{color:var(--flat);font-weight:700}
+.saltop{margin-top:22px;background:var(--panel);border-radius:28px;padding:clamp(16px,3vw,24px)}
+.saltop label{display:flex;flex-direction:column;gap:8px;font-weight:800;font-size:16px;max-width:420px}
+.saltop input{font:inherit;font-weight:800;font-size:26px;color:var(--fg);background:var(--field);border:2px solid var(--line);border-radius:18px;padding:12px 16px;width:100%;font-variant-numeric:tabular-nums}
+.sal{margin-top:40px;background:var(--panel);border-radius:32px;padding:clamp(20px,4vw,32px);display:flex;flex-direction:column;gap:18px}
+.sal h2{margin:0;font-size:clamp(22px,3.2vw,30px);font-weight:800;letter-spacing:-.02em}
+.sal .row{display:flex;gap:14px;flex-wrap:wrap;align-items:end}
+.sal label{display:flex;flex-direction:column;gap:6px;font-weight:800;font-size:13px;min-width:0;flex:1 1 220px}
+.sal input,.ed input,.ed select,.edform input,.edform select{font:inherit;font-weight:700;color:var(--fg);background:var(--field);border:1.5px solid var(--line);border-radius:14px;padding:12px 14px;width:100%;font-variant-numeric:tabular-nums}
+.sal input{font-size:22px}
+.bar{display:flex;height:34px;border-radius:99px;overflow:hidden;background:var(--card);border:1.5px solid var(--line)}
+.bar span{display:block;height:100%;transition:width .5s}
+.bar .s{background:linear-gradient(135deg,var(--accent),var(--accent2))}
+.bar .r{background:var(--good)}
+.bar .x{background:var(--bad)}
+.leg{display:flex;flex-wrap:wrap;gap:6px 20px;font-weight:700;font-size:14px}
+.leg i{display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:7px;vertical-align:-1px}
+.res{font-weight:800;font-size:clamp(26px,5vw,42px);letter-spacing:-.03em;line-height:1.08;font-variant-numeric:tabular-nums}
+.res.good{color:var(--good)}.res.bad{color:var(--bad)}
+.res small{display:block;font-size:15px;color:var(--muted);font-weight:700;letter-spacing:0;margin-top:6px}
+.note{background:var(--panel);border-radius:24px;padding:20px 22px;margin-top:40px;font-size:14px}
+.note h3{margin:0 0 6px;font-size:16px;font-weight:800}
+.note ul{margin:10px 0 0;padding-left:20px;display:flex;flex-direction:column;gap:6px}
+.note a{color:var(--flat);font-weight:700}
+.foot{margin-top:28px;padding-top:20px;border-top:1.5px solid var(--line);display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:center;font-size:14px}
+.foot b{font-weight:800}
+.foot a{color:var(--flat);font-weight:800}
+.edbar{margin-top:18px;background:var(--panel);border:2px dashed var(--flat);border-radius:22px;padding:16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.edbar b{font-weight:800}
+.ed{display:flex;flex-direction:column;gap:8px;border-top:1.5px dashed var(--line);padding-top:10px}
+.ed label,.edform label{display:flex;flex-direction:column;gap:4px;font-size:12px;font-weight:800;color:var(--muted)}
+.edform{margin-top:14px;background:var(--panel);border-radius:22px;padding:14px;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr));gap:10px;align-items:end}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+<header>
+  <a class="brand" href="https://compromis.net" target="_blank" rel="noopener">COMPROMÍS CASTALLA</a>
+  <h1>I si tot ho haguérem de pagar de la nostra butxaca?</h1>
+  <p class="lead">Toca els serveis que fas servir i mira com puja el total de si tot fora privat. Són estimacions amb fonts públiques.</p>
+</header>
+
+<section class="saltop" aria-label="El teu sou">
+  <label for="sal">Quant cobres al mes? <span class="hint" style="font-weight:600">Sou net, en euros. Només es queda al teu navegador.</span>
+    <input type="number" id="sal" min="0" step="10" inputmode="decimal" placeholder="1.400">
+  </label>
+</section>
+
+<div class="edbar" id="edbar" hidden>
+  <span><b>Mode editor.</b> Canvia noms, descripcions i preus, esborra serveis o afegeix-ne. Els canvis es guarden només al teu navegador fins que copies la configuració i me l’envies.</span>
+  <div class="acts">
+    <button class="btn sm" type="button" id="edcopy">Copia la configuració</button>
+    <button class="btn sec sm" type="button" id="edrestore">Torna a les dades originals</button>
+    <span class="hint" id="edmsg" aria-live="polite"></span>
+  </div>
+</div>
+
+<div class="mini" role="status"><span>Si fora tot privat</span><b id="miniTot">0 €</b></div>
+
+<div class="layout">
+  <main>
+    <div id="areas"></div>
+    <section class="sal" aria-labelledby="salh">
+      <h2 id="salh">I el teu sou, què se n’endú?</h2>
+      <p class="hint" style="margin:0" id="salhint">Posa el teu sou dalt de tot i veuràs què et quedaria després de pagar tot el que has marcat.</p>
+      <div id="salres" hidden>
+        <div class="bar" aria-hidden="true"><span class="s" id="bs"></span><span class="r" id="br"></span><span class="x" id="bx"></span></div>
+        <div class="leg" style="margin-top:10px"><span><i style="background:linear-gradient(135deg,var(--accent),var(--accent2))"></i><span id="lgs"></span></span><span id="lgr"></span></div>
+        <div class="res" id="res" role="status" aria-live="polite" style="margin-top:14px"></div>
+      </div>
+    </section>
+  </main>
+  <aside class="summary" aria-label="Resum">
+    <div class="sum-top">
+      <div class="donut">
+        <svg viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="100" r="76" stroke="var(--line)"></circle><g id="segs"></g></svg>
+        <div class="ctr"><span class="l">Cada any</span><span class="n" id="tot">0 €</span></div>
+      </div>
+      <div class="sum-month" id="mes">0 € cada mes</div>
+    </div>
+    <div class="rows" id="rows" role="status" aria-live="polite"></div>
+    <p class="rng" id="rng"></p>
+    <div class="sumsal" id="sumsal" hidden></div>
+    <div class="acts">
+      <button class="btn" type="button" id="copy">Copia el resum</button>
+      <button class="btn sec" type="button" id="reset">Torna a començar</button>
+    </div>
+    <span class="hint" id="msg" aria-live="polite"></span>
+  </aside>
+</div>
+
+<footer class="foot">
+  <span><b>Una eina de Compromís Castalla.</b> Castalla, et volem escoltar.</span>
+  <a href="https://compromis.net" target="_blank" rel="noopener">Coneix Compromís</a>
+</footer>
+</div>
+
+<script>
+(function(){
+  var $=function(i){return document.getElementById(i)};
+  var EDITOR=(location.hash==='#editor');
+  var fmt=new Intl.NumberFormat('ca-ES',{maximumFractionDigits:0});
+  var eur=function(n){return fmt.format(Math.round(n))+' €'};
+  var IC={
+    sanitat:'<path d="M12 21s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 11c0 5.600-7 10-7 10z"/><path d="M12 9v5M9.500 11.500h5"/>',
+    educacio:'<path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c0 1.500 3 3 6 3s6-1.500 6-3v-5"/>',
+    dependencia:'<circle cx="12" cy="7" r="3"/><path d="M5 21v-3a7 7 0 0 1 14 0v3"/><path d="M9 14l3 3 3-3"/>',
+    pensions:'<circle cx="12" cy="12" r="9"/><path d="M14.500 9.500c-.5-1-1.500-1.500-2.500-1.500-1.500 0-2.500.8-2.500 2s1 1.600 2.500 2 2.500.8 2.500 2-1 2-2.500 2c-1.200 0-2.200-.6-2.700-1.600M12 6v2M12 16v2"/>',
+    transport:'<rect x="4" y="3" width="16" height="14" rx="3"/><path d="M4 11h16M8 21v-4M16 21v-4"/><circle cx="8" cy="14" r=".8"/><circle cx="16" cy="14" r=".8"/>',
+    habitatge:'<path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/>',
+    propis:'<circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/>'
+  };
+  var CHECK='<svg viewBox="0 0 24 24"><path d="M5 12l5 5 9-10"/></svg>';
+  var F=function(id,label,def,min,max,step){return {id:id,label:label,def:def,min:min,max:max,step:step||1}};
+  var DATA=[
+   {k:'sanitat',n:'Sanitat',sub:'Cada visita, prova o ingrés té un cost.',items:[
+    {id:'s1',n:'Visita al metge de capçalera',d:'20–50 € per visita',p:35,pub:0,f:[F('v','Visites a l’any',4,1,40)],src:'sel'},
+    {id:'s2',n:'Visita a l’especialista',d:'60–120 € la primera visita, sense proves',p:90,pub:0,f:[F('v','Visites a l’any',2,1,30)],src:'sel'},
+    {id:'s3',n:'Urgències',d:'100–250 € per un adult, sense proves',p:175,pub:0,f:[F('v','Vegades a l’any',1,1,10)],src:'sel'},
+    {id:'s4',n:'Analítica completa',d:'49–75 €',p:62,pub:0,f:[F('v','Vegades a l’any',1,1,6)],src:'sel'},
+    {id:'s5',n:'Radiografia',d:'16–70 €',p:43,pub:0,f:[F('v','Vegades a l’any',1,1,6)],src:'sel'},
+    {id:'s6',n:'Ecografia',d:'83–110 €',p:97,pub:0,f:[F('v','Vegades a l’any',1,1,6)],src:'sel'},
+    {id:'s7',n:'TAC',d:'170–260 €',p:215,pub:0,f:[F('v','Vegades a l’any',1,1,4)],src:'sel'},
+    {id:'s8',n:'Ressonància magnètica',d:'199–290 €',p:245,pub:0,f:[F('v','Vegades a l’any',1,1,4)],src:'sel'},
+    {id:'s9',n:'Part natural',d:'4.500–10.000 € sense assegurança, sense epidural',p:8000,pub:0,f:[F('v','Parts',1,1,3)],src:'part'},
+    {id:'s10',n:'Cesària programada',d:'6.000–15.000 € sense assegurança',p:10500,pub:0,f:[F('v','Cesàries',1,1,3)],src:'part'},
+    {id:'s11',n:'Epidural en un part',d:'600–1.500 €, es factura a banda',p:1050,pub:0,f:[F('v','Vegades',1,1,3)],src:'part'},
+    {id:'s12',n:'Dia d’ingrés en un hospital',d:'1.339 € el dia en planta; 2.025 € en unitats especials (cost real, tarifa pública)',p:1339,f:[F('v','Dies d’ingrés',3,1,60)],src:'ova'},
+    {id:'s14',n:'Medicaments, mitjana per persona',d:'285 € l’any per habitant: el que paga ara el sistema públic en receptes (2024), sense comptar el copagament',p:285,f:[F('v','Persones',1,1,8)],src:'med'},
+    {id:'s15',n:'Un envàs de medicament',d:'12,04 € de mitjana a la Comunitat Valenciana (2025)',p:12.04,f:[F('v','Envasos a l’any',24,1,300)],src:'env'},
+    {id:'s13',n:'Quimioteràpia, per sessió',d:'1.500–4.500 € per sessió; un cicle són entre 4 i 8 sessions',p:3000,pub:0,f:[F('v','Sessions',6,1,16)],src:'qui'}]},
+   {k:'educacio',n:'Educació',sub:'Cost per fill o filla. El preu públic inclou llibres, material i roba que també es paguen a l’escola pública.',items:[
+    {id:'e1',n:'Escola infantil (0–3 anys)',d:'300–900 € al mes; a la pública, entre 0 i 300 € segons ingressos',p:600,f:[F('v','Mesos',10,1,12),F('n','Fills o filles',1,1,4)],src:'col'},
+    {id:'e2',n:'Escola (3–18 anys)',d:'Unes 8.700 € l’any per alumne, enfront d’uns 1.300 € a la pública',p:8700,pub:1300,f:[F('v','Fills o filles',1,1,5)],src:'ocu'},
+    {id:'e3',n:'Universitat, un curs de grau',d:'5.500–18.000 € el curs. A la pública, unes 930 €',p:11750,pub:929,f:[F('v','Cursos',1,1,6)],src:'din'}]},
+   {k:'dependencia',n:'Dependència',sub:'Cures per a persones majors o dependents.',items:[
+    {id:'d1',n:'Plaça en una residència',d:'2.197 € al mes de mitjana a la Comunitat Valenciana (2026)',p:2197,f:[F('v','Mesos',12,1,12)],src:'ali'},
+    {id:'d2',n:'Cuidador o cuidadora per hores',d:'10–15 € l’hora',p:12,f:[F('v','Hores al mes',60,5,240,5),F('m','Mesos',12,1,12)],src:'cui'},
+    {id:'d3',n:'Cuidador o cuidadora intern',d:'1.600–2.200 € al mes de cost total',p:1900,f:[F('v','Mesos',12,1,12)],src:'cui'}]},
+   {k:'pensions',n:'Pensions',sub:'Si la jubilació s’haguera de pagar un mateix: quant caldria estalviar cada any. Càlcul simple, sense interessos ni inflació.',items:[
+    {id:'p1',n:'Estalviar la teua pròpia pensió',d:'Pensió mitjana de jubilació: 1.576 € al mes (setembre de 2026)',special:'pens',f:[F('pen','Pensió que vols (€/mes)',1576,300,4000,50),F('cob','Anys cobrant',20,5,35),F('tre','Anys treballant',40,10,45)],src:'pen'}]},
+   {k:'transport',n:'Transport',sub:'Si agafes l’autobús i el bitllet s’haguera de pagar sencer.',items:[
+    {id:'t1',n:'Autobús Castalla–Alacant',d:'Entre 2 i 6 € per trajecte (la font no coincideix); fem servir 4 €',p:4,f:[F('v','Trajectes a la setmana',10,1,30),F('m','Setmanes a l’any',46,1,52)],src:'omio'}]},
+   {k:'habitatge',n:'Habitatge',sub:'Lloguer a preu de mercat. No hi ha xifra de Castalla; fem servir la d’Alacant ciutat.',items:[
+    {id:'h1',n:'Lloguer d’un pis a Alacant ciutat',d:'12,8 € per m² i mes (gener de 2026)',p:12.8,f:[F('m2','Metres quadrats',70,25,200,5),F('m','Mesos',12,1,12)],src:'esp'}]}
+  ];
+  var S={
+   sel:['Selectra: preus de consultes i proves, 8 de maig de 2025','https://selectra.es/seguros/seguros-salud/precio-consulta-privada'],
+   part:['Cuántomecuesta: preu d’un part en hospital, abril de 2026','https://cuantomecuesta.com/es/parto/'],
+   ova:['Onda Vasca, amb la tarifa pública d’Osakidetza: cost del dia d’ingrés, 3 de gener de 2025','https://www.ondavasca.com/el-precio-de-osakidetza-un-dia-de-hospital-cuesta-1-339-euros/'],
+   qui:['Cuántomecuesta: quimioteràpia a Espanya, maig de 2026','https://cuantomecuesta.com/es/quimioterapia/'],
+   col:['Cuántomecuesta: escola infantil i col·legis, abril de 2026','https://cuantomecuesta.com/es/colegio-privado/'],
+   ocu:['OCU: cost de la tornada a l’escola, curs 2026-2027','https://www.ocu.org/consumo-familia/bebes/informe/gastos-vuelta-cole'],
+   din:['Dineo: cost d’estudiar a la universitat a Espanya, 2026','https://www.dineo.es/blog/cuanto-cuesta-estudiar-en-la-universidad-en-espana/'],
+   ali:['Alimarket i Inforesidencias: preu mitjà d’una plaça en residència, 2026','https://www.alimarket.es/sanidad/noticia_amp/430822/el-precio-medio-de-una-plaza-en-una-residencia-privada-se-situa-en-2-153---en-2026'],
+   cui:['Cuántomecuesta: cuidador de majors, maig de 2026 (les xifres de la pàgina no són del tot coherents; s’usen com a orientació)','https://cuantomecuesta.com/es/cuidador-mayores/'],
+   pen:['Corresponsables, amb dades del Ministeri d’Inclusió i Seguretat Social: pensió mitjana, setembre de 2026','https://www.corresponsables.com/actualidad/la-pension-media-en-espana-alcanza-los-1-3746-euros-en-septiembre-un-46-mas-que-hace-un-ano/'],
+   omio:['Omio: autobús de Castalla a Alacant (Grup Subús), novembre de 2026','https://www.omio.es/autobuses/castalla/alicante-bdudq'],
+   med:['Informe Anual 2024 del Sistema Nacional de Salud, via Europa Press: gasto farmacèutic en recepta per habitant','https://www.diarioestrategia.cl/texto-diario/mostrar/5693368/gasto-farmaceutico-traves-receta-situa-285-euros-habitante-32-2012'],
+   env:['Ministeri de Sanitat: facturació de receptes, desembre de 2025','https://www.sanidad.gob.es/gl/areas/farmacia/consumoMedicamentos/facturacionRecetas/totales/2025/diciembre.htm'],
+   esp:['El Español, amb dades d’Idealista: lloguer a Alacant ciutat, gener de 2026','https://www.elespanol.com/alacant/economia/20260203/comunidad-valenciana-lidera-subida-rentas-enero-alquilar-cuesta/1003744113157_0.html']
+  };
+  var PRISTINE=JSON.stringify(DATA);
+  function ser(d){return JSON.stringify(d.map(function(a){return {k:a.k,n:a.n,sub:a.sub,items:a.items.map(function(i){var o={};Object.keys(i).forEach(function(k){if(k!=='el')o[k]=i[k]});o.f=i.f.map(function(f){return {id:f.id,label:f.label,def:f.def,min:f.min,max:f.max,step:f.step}});return o})}}))}
+  var EKEY='calc-editor-v3',KEY='calc-privat-v3';
+  var data=DATA;
+  if(EDITOR){try{var re=localStorage.getItem(EKEY);if(re){var jd=JSON.parse(re);if(Array.isArray(jd)&&jd.length)data=jd}}catch(e){}}
+  function saveData(){if(EDITOR){try{localStorage.setItem(EKEY,ser(data))}catch(e){}}}
+  var st={on:{},q:{},sal:''};
+  try{var raw=localStorage.getItem(KEY);if(raw){var j=JSON.parse(raw);if(j&&typeof j==='object'){st.on=j.on||{};st.q=j.q||{};st.sal=(typeof j.sal==='string'||typeof j.sal==='number')?j.sal:''}}}catch(e){}
+  function save(){try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+  var areasEl=$('areas'),all=[];
+  function qty(it,fid){var k=it.id+'|'+fid,f=it.f.filter(function(x){return x.id===fid})[0];return (k in st.q)?st.q[k]:f.def}
+  function calc(it){
+    var q={};it.f.forEach(function(f){q[f.id]=qty(it,f.id)});
+    if(it.special==='pens'){var y=q.pen*12*q.cob/q.tre;return {v:y,pub:0,hasPub:false}}
+    var mult=1;it.f.forEach(function(f){mult*=q[f.id]});
+    return {v:(it.p||0)*mult,pub:(it.pub==null?0:it.pub*mult),hasPub:it.pub!=null};
+  }
+  function cardEl(it,a){
+    var h=document.createElement('div');h.className='card';h.style.setProperty('--ac','var(--a-'+a.k+')');
+    h.innerHTML='<button class="head" type="button" aria-pressed="false"><span class="top"><span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true">'+(IC[a.k]||IC.propis)+'</svg></span><span class="chk">'+CHECK+'</span></span><span class="t"></span><span class="price"><span class="pv">0 €</span> <small class="pu"></small></span><span class="d"></span></button><div class="pub"></div><div class="flds"></div><div class="src"></div>';
+    h.querySelector('.t').textContent=it.n;h.querySelector('.d').textContent=it.d;
+    var fl=h.querySelector('.flds');
+    it.f.forEach(function(f){
+      var r=document.createElement('div');r.className='step';
+      r.innerHTML='<span></span><div class="stp"><button type="button" aria-label="Menys">−</button><input type="number" inputmode="decimal"><button type="button" aria-label="Més">+</button></div>';
+      r.querySelector('span').textContent=f.label;
+      var inp=r.querySelector('input'),b=r.querySelectorAll('button');
+      inp.min=f.min;inp.max=f.max;inp.step=f.step;inp.setAttribute('aria-label',f.label+': '+it.n);
+      function set(v){if(isNaN(v))v=f.def;v=Math.max(f.min,Math.min(f.max,v));st.q[it.id+'|'+f.id]=v;if(!st.on[it.id])st.on[it.id]=true;upd(true)}
+      inp.addEventListener('change',function(){set(parseFloat(inp.value))});
+      b[0].addEventListener('click',function(){set(qty(it,f.id)-f.step)});
+      b[1].addEventListener('click',function(){set(qty(it,f.id)+f.step)});
+      f.inp=inp;fl.appendChild(r);
+    });
+    var sr=h.querySelector('.src');
+    if(it.src&&S[it.src]){var ln=document.createElement('a');ln.href=S[it.src][1];ln.target='_blank';ln.rel='noopener';ln.textContent='Font: '+S[it.src][0].split(':')[0];sr.appendChild(ln)}
+    else if(it.font){sr.textContent='Font: '+it.font}
+    h.querySelector('.head').addEventListener('click',function(){st.on[it.id]=!st.on[it.id];upd(true)});
+    if(EDITOR){
+      var ed=document.createElement('div');ed.className='ed';
+      ed.innerHTML='<label>Nom<input type="text" class="en" maxlength="80"></label><label>Descripció<input type="text" class="edd" maxlength="160"></label>'+(it.special?'':'<label>Preu per unitat (€)<input type="number" class="ep" min="0" step="any" inputmode="decimal"></label>')+'<button class="btn sec sm" type="button">Esborra el servei</button>';
+      ed.querySelector('.en').value=it.n;ed.querySelector('.edd').value=it.d;
+      ed.querySelector('.en').addEventListener('change',function(e){var v=e.target.value.trim();if(v){it.n=v;saveData();build()}});
+      ed.querySelector('.edd').addEventListener('change',function(e){it.d=e.target.value.trim();saveData();build()});
+      var ep=ed.querySelector('.ep');if(ep){ep.value=it.p;ep.addEventListener('change',function(e){var v=parseFloat(e.target.value);if(!isNaN(v)&&v>=0){it.p=v;saveData();upd(false);build()}})}
+      ed.querySelector('button').addEventListener('click',function(){a.items=a.items.filter(function(x){return x!==it});delete st.on[it.id];saveData();build();upd(true)});
+      h.appendChild(ed);
+    }
+    it.el=h;return h;
+  }
+  function build(){
+    areasEl.innerHTML='';all=[];
+    data.forEach(function(a){
+      var sec=document.createElement('section');sec.className='area';
+      sec.innerHTML='<div class="ah"><div class="ico" style="background:var(--a-'+a.k+')"><svg viewBox="0 0 24 24" aria-hidden="true">'+(IC[a.k]||IC.propis)+'</svg></div><h2></h2><span class="sub-t"></span></div><p class="asub"></p><div class="cards"></div>';
+      sec.querySelector('h2').textContent=a.n;sec.querySelector('.asub').textContent=a.sub||'';
+      a.subt=sec.querySelector('.sub-t');var cards=sec.querySelector('.cards');
+      a.items.forEach(function(it){all.push({it:it,a:a});cards.appendChild(cardEl(it,a))});
+      if(EDITOR){
+        var fm=document.createElement('form');fm.className='edform';fm.autocomplete='off';
+        fm.innerHTML='<label>Servei nou<input type="text" class="nn" maxlength="80" required placeholder="Per exemple: dentista"></label><label>Descripció<input type="text" class="nd" maxlength="160" placeholder="Rang de preus o nota"></label><label>Preu per vegada (€)<input type="number" class="np" min="0" step="any" required inputmode="decimal"></label><label>Font (opcional)<input type="text" class="nf" maxlength="80"></label><button class="btn sm" type="submit">Afegeix a '+a.n.replace(/</g,'')+'</button>';
+        fm.addEventListener('submit',function(e){e.preventDefault();
+          var n=fm.querySelector('.nn').value.trim(),p=parseFloat(fm.querySelector('.np').value);
+          if(!n||isNaN(p)||p<0)return;
+          a.items.push({id:'n'+Date.now(),n:n,d:fm.querySelector('.nd').value.trim(),p:p,f:[F('v','Vegades a l’any',1,1,500)],font:fm.querySelector('.nf').value.trim()});
+          saveData();build();upd(false)});
+        sec.appendChild(fm);
+      }
+      areasEl.appendChild(sec);
+    });
+    upd(false);
+  }
+  var cur=0,anim=0;
+  function setNum(n){
+    cancelAnimationFrame(anim);
+    var reduce=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+    function put(v){$('tot').textContent=eur(v);$('miniTot').textContent=eur(v)}
+    if(reduce){put(n);cur=n;return}
+    var from=cur,t0=performance.now();
+    (function step(t){var k=Math.min(1,(t-t0)/450),e=1-Math.pow(1-k,3);cur=from+(n-from)*e;put(cur);if(k<1)anim=requestAnimationFrame(step)})(t0);
+  }
+  var R=76,C=2*Math.PI*R;
+  function upd(doSave){
+    var tot=0,pubSum=0,pubKnown=0,sums={};
+    data.forEach(function(a){sums[a.k]=0});
+    all.forEach(function(o){
+      var it=o.it,a=o.a,on=!!st.on[it.id],c=calc(it);
+      var h=it.el;h.classList.toggle('on',on);h.querySelector('.head').setAttribute('aria-pressed',on?'true':'false');
+      h.querySelector('.pv').textContent=eur(c.v);
+      h.querySelector('.pu').textContent=it.special==='pens'?'a l’any':'';
+      h.querySelector('.pub').textContent=it.pub!=null?('A la pública: '+eur(c.pub)):'';
+      it.f.forEach(function(f){if(f.inp)f.inp.value=qty(it,f.id)});
+      if(on){sums[a.k]+=c.v;tot+=c.v;if(c.hasPub){pubSum+=c.pub;pubKnown+=c.v}}
+    });
+    data.forEach(function(a){if(a.subt)a.subt.textContent=sums[a.k]>0?eur(sums[a.k])+' a l’any':''});
+    setNum(tot);
+    var mes=tot/12;
+    $('mes').textContent=eur(mes)+' cada mes';
+    var segs=$('segs');segs.innerHTML='';var off=0;
+    var rows=$('rows');rows.innerHTML='';
+    data.forEach(function(a){
+      var v=sums[a.k];
+      if(v>0&&tot>0){
+        var len=v/tot*C,c=document.createElementNS('http://www.w3.org/2000/svg','circle');
+        c.setAttribute('cx',100);c.setAttribute('cy',100);c.setAttribute('r',R);c.setAttribute('stroke','var(--a-'+a.k+')');
+        c.setAttribute('stroke-dasharray',Math.max(0,len-1.5)+' '+(C-Math.max(0,len-1.5)));c.setAttribute('stroke-dashoffset',-off);
+        segs.appendChild(c);off+=len;
+      }
+      var r=document.createElement('div');r.className='rw'+(v>0?'':' z');
+      r.innerHTML='<i style="background:var(--a-'+a.k+')"></i><span></span><b></b>';
+      r.querySelector('span').textContent=a.n;r.querySelector('b').textContent=v>0?eur(v)+' · '+Math.round(v/tot*100)+' %':'—';
+      rows.appendChild(r);
+    });
+    var r='';
+    if(tot>0){
+      r='Fent servir això durant un any.';
+      if(pubKnown>0)r+=' Dels serveis marcats amb preu públic conegut, ara en pagues unes '+eur(pubSum)+' en lloc de '+eur(pubKnown)+'.';
+    }else r='Toca algun servei i el donut començarà a omplir-se.';
+    $('rng').textContent=r;
+    // sou
+    var sal=parseFloat(st.sal);
+    var box=$('salres'),ss=$('sumsal');
+    $('salhint').hidden=(!isNaN(sal)&&sal>0);
+    if(!isNaN(sal)&&sal>0){
+      box.hidden=false;
+      var left=sal-mes,pct=mes/sal*100;
+      var base=Math.max(sal,mes);
+      var sw=Math.min(mes,sal)/base*100;
+      $('bs').style.width=(mes>sal?(sal/base*100):sw)+'%';
+      $('br').style.width=(left>0?(left/base*100):0)+'%';
+      $('bx').style.width=(left<0?(-left/base*100):0)+'%';
+      $('lgs').textContent='Serveis: '+eur(mes)+' al mes ('+Math.round(pct)+' % del sou)';
+      var lr=$('lgr');lr.innerHTML='';
+      var ii=document.createElement('i');ii.style.background=left>=0?'var(--good)':'var(--bad)';lr.appendChild(ii);
+      lr.appendChild(document.createTextNode(left>=0?('Et queda: '+eur(left)):('Et falta: '+eur(-left))));
+      var rs=$('res');rs.className='res '+(left>=0?'good':'bad');
+      rs.innerHTML='';
+      rs.appendChild(document.createTextNode(left>=0?('Et quedarien '+eur(left)+' al mes'):('No arribaries a final de mes: et faltarien '+eur(-left))));
+      var sm=document.createElement('small');sm.textContent='Cobres '+eur(sal)+' i pagar tot això costaria '+eur(mes)+' al mes, el '+Math.round(pct)+' % del teu sou.';rs.appendChild(sm);
+      ss.hidden=false;ss.textContent=left>=0?('Del teu sou et quedarien '+eur(left)+' al mes.'):('Et faltarien '+eur(-left)+' al mes.');
+    }else{box.hidden=true;ss.hidden=true}
+    window.__sum={tot:tot,sums:sums,sal:sal};
+    if(doSave)save();
+  }
+  $('sal').value=(st.sal===''?'':st.sal);
+  $('sal').addEventListener('input',function(){var v=$('sal').value;st.sal=v;upd(true)});
+  $('reset').addEventListener('click',function(){st.on={};st.q={};st.sal='';$('sal').value='';$('msg').textContent='';upd(true)});
+  function copyTxt(txt,ok,fb){try{navigator.clipboard.writeText(txt).then(ok,fb)}catch(e){fb()}}
+  function legacy(txt){var ta=document.createElement('textarea');ta.value=txt;ta.style.cssText='position:fixed;opacity:0';document.body.appendChild(ta);ta.select();var g=false;try{g=document.execCommand('copy')}catch(e){}document.body.removeChild(ta);return g}
+  $('copy').addEventListener('click',function(){
+    var L=['Si tot fora privat (estimació a preus d’ara):'];
+    all.forEach(function(o){if(st.on[o.it.id])L.push('- '+o.it.n+': '+eur(calc(o.it).v)+(o.it.special==='pens'?' a l’any':''))});
+    var s=window.__sum||{tot:0};
+    L.push('Total: '+eur(s.tot)+' a l’any ('+eur(s.tot/12)+' al mes).');
+    if(s.sal>0)L.push('Amb un sou de '+eur(s.sal)+' al mes, '+(s.sal-s.tot/12>=0?'em quedarien '+eur(s.sal-s.tot/12):'em faltarien '+eur(s.tot/12-s.sal))+' al mes.');
+    L.push('Estimacions amb fonts públiques.','Compromís Castalla · #CastallaEtVolemEscoltar');
+    var txt=L.join('\n');
+    copyTxt(txt,function(){$('msg').textContent='Resum copiat'},function(){$('msg').textContent=legacy(txt)?'Resum copiat':'No s’ha pogut copiar'});
+  });
+  if(EDITOR){
+    $('edbar').hidden=false;
+    $('edcopy').addEventListener('click',function(){
+      var txt=ser(data);
+      copyTxt(txt,function(){$('edmsg').textContent='Configuració copiada: envia-me-la'},function(){$('edmsg').textContent=legacy(txt)?'Configuració copiada: envia-me-la':'No s’ha pogut copiar'});
+    });
+    $('edrestore').addEventListener('click',function(){try{localStorage.removeItem(EKEY)}catch(e){}data=JSON.parse(PRISTINE);build();$('edmsg').textContent='Dades originals restaurades'});
+  }
+  build();
+})();
+</script>
+
+</body>
+</html>
